@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# Add node to PATH for React Native
+export PATH="$PATH:/Users/apple/.nvm/versions/node/v24.18.1/bin"
+
+# Set JDK 17 for Gradle
+export JAVA_HOME="/Users/apple/Library/Java/JavaVirtualMachines/ms-17.0.20/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+
 #
 # Copyright © 2015 the original authors.
 #

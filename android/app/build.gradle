@@ -25,7 +25,7 @@ react {
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
-    // nodeExecutableAndArgs = ["node"]
+    nodeExecutableAndArgs = [project.findProperty('NODE_EXECUTABLE') ?: "node"]
     //
     //   The command to run when bundling. By default is 'bundle'
     // bundleCommand = "ram-bundle"
@@ -53,6 +53,8 @@ react {
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
+
+project.ext.REACT_NATIVE_NODE_MODULES_DIR = "${project.rootDir}/../node_modules/react-native".toString()
 
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
@@ -109,6 +111,7 @@ android {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
+    implementation 'com.google.ar:core:1.44.0'
     implementation("com.facebook.react:react-android")
 
     if (hermesEnabled.toBoolean()) {
@@ -117,3 +120,6 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+

@@ -1,0 +1,210 @@
+import { StyleSheet, Platform } from 'react-native';
+import { colors } from '../../theme/colors';
+import {
+  horizontalScale,
+  verticalScale,
+  moderateScale,
+  width,
+  height,
+} from '../../theme/Metrics';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.black,
+  },
+  cameraView: {
+    width: width,
+    height: height,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.black,
+    paddingHorizontal: horizontalScale(24),
+  },
+  permissionText: {
+    color: colors.white,
+    fontSize: moderateScale(16),
+    textAlign: 'center',
+    marginBottom: verticalScale(16),
+  },
+  permissionButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: horizontalScale(20),
+    paddingVertical: verticalScale(10),
+    borderRadius: moderateScale(8),
+  },
+  permissionButtonText: {
+    color: colors.black,
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+  },
+  // Overlay styles
+  overlayContainer: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'space-between',
+    paddingBottom: verticalScale(80),
+  },
+  headerContainer: {
+    paddingTop: verticalScale(44),
+    paddingHorizontal: horizontalScale(16),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    color: colors.white,
+    fontSize: moderateScale(18),
+    fontWeight: '700',
+    textShadowColor: colors.overlayShadow,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: moderateScale(3),
+  },
+  mainOverlayContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingHorizontal: horizontalScale(16),
+    paddingBottom: verticalScale(16),
+  },
+  // Profile Section (Bottom Left)
+  profileSection: {
+    flex: 1,
+    marginRight: horizontalScale(16),
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: verticalScale(10),
+  },
+  avatarContainer: {
+    width: moderateScale(38),
+    height: moderateScale(38),
+    borderRadius: moderateScale(19),
+    backgroundColor: colors.badgeRed,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: moderateScale(1.5),
+    borderColor: colors.white,
+    marginRight: horizontalScale(10),
+  },
+  creatorName: {
+    color: colors.white,
+    fontSize: moderateScale(15),
+    fontWeight: '600',
+    marginRight: horizontalScale(12),
+    textShadowColor: colors.overlayShadow,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: moderateScale(3),
+  },
+  followButton: {
+    paddingHorizontal: horizontalScale(14),
+    paddingVertical: verticalScale(5),
+    borderRadius: moderateScale(6),
+    borderWidth: moderateScale(1),
+    borderColor: colors.whiteBorder,
+    backgroundColor: colors.followButtonBg,
+  },
+  followButtonActive: {
+    backgroundColor: colors.white,
+    borderColor: colors.white,
+  },
+  followButtonText: {
+    color: colors.white,
+    fontSize: moderateScale(12),
+    fontWeight: '600',
+  },
+  followButtonTextActive: {
+    color: colors.black,
+    fontWeight: '700',
+  },
+  captionText: {
+    color: colors.white,
+    fontSize: moderateScale(16),
+    fontWeight: '500',
+    marginTop: verticalScale(4),
+    textShadowColor: colors.overlayShadow,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: moderateScale(3),
+  },
+  // Right Action Bar
+  actionColumn: {
+    alignItems: 'center',
+    gap: verticalScale(22),
+  },
+  actionButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIconContainer: {
+    width: moderateScale(42),
+    height: moderateScale(42),
+    borderRadius: moderateScale(21),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionLabel: {
+    color: colors.white,
+    fontSize: moderateScale(11),
+    fontWeight: '500',
+    marginTop: verticalScale(4),
+  },
+  // Bottom Dock Navigation Bar
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.bottomBarBg,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: verticalScale(10),
+    paddingBottom: Platform.OS === 'ios' ? verticalScale(24) : verticalScale(12),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.gray.seven,
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: horizontalScale(56),
+  },
+  tabIconContainer: {
+    width: moderateScale(32),
+    height: moderateScale(32),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanActiveFrame: {
+    borderWidth: moderateScale(1.5),
+    borderColor: colors.white,
+    borderRadius: moderateScale(8),
+    padding: moderateScale(2),
+  },
+  centerPlusButton: {
+    width: moderateScale(44),
+    height: moderateScale(44),
+    borderRadius: moderateScale(22),
+    borderWidth: moderateScale(1.5),
+    borderColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabLabel: {
+    color: colors.iconInactive,
+    fontSize: moderateScale(11),
+    fontWeight: '500',
+    marginTop: verticalScale(3),
+  },
+  activeTabLabel: {
+    color: colors.iconActive,
+    fontWeight: '600',
+  },
+});
