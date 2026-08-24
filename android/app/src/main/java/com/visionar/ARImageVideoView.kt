@@ -10,6 +10,7 @@ import com.visionar.rendering.BackgroundRenderer
 import com.visionar.rendering.DisplayRotationHelper
 import com.visionar.rendering.VideoPlaneRenderer
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.uimanager.events.RCTEventEmitter
@@ -23,7 +24,7 @@ import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.Renderer {
+class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.Renderer, LifecycleEventListener {
     private val surfaceView: GLSurfaceView
     private var session: Session? = null
     private val displayRotationHelper: DisplayRotationHelper
@@ -46,6 +47,7 @@ class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.R
         addView(surfaceView)
 
         displayRotationHelper = DisplayRotationHelper(context)
+        (context as? ReactContext)?.addLifecycleEventListener(this)
     }
 
     fun setTargets(targets: ReadableArray) {
@@ -169,12 +171,61 @@ class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.R
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         displayRotationHelper.onResume()
+        if (isSessionPaused) {
+            try {
+                session?.resume()
+                isSessionPaused = false
+            } catch (e: Exception) {
+                Log.e(TAG, "Error resuming session on attach", e)
+            }
+        }
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         displayRotationHelper.onPause()
-        session?.pause()
+        videoPlaneRenderer.stopVideo()
+        try {
+            session?.pause()
+            isSessionPaused = true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error pausing session on detach", e)
+        }
+    }
+
+    override fun onHostResume() {
+        displayRotationHelper.onResume()
+        if (isSessionPaused) {
+            try {
+                session?.resume()
+                isSessionPaused = false
+            } catch (e: Exception) {
+                Log.e(TAG, "Error resuming session in onHostResume", e)
+            }
+        }
+    }
+
+    override fun onHostPause() {
+        displayRotationHelper.onPause()
+        videoPlaneRenderer.stopVideo()
+        if (!isSessionPaused) {
+            try {
+                session?.pause()
+                isSessionPaused = true
+            } catch (e: Exception) {
+                Log.e(TAG, "Error pausing session in onHostPause", e)
+            }
+        }
+    }
+
+    override fun onHostDestroy() {
+        videoPlaneRenderer.release()
+        try {
+            session?.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing session in onHostDestroy", e)
+        }
+        session = null
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -191,7 +242,7 @@ class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.R
     override fun onDrawFrame(gl: GL10?) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        if (session == null) return
+        if (session == null || isSessionPaused) return
 
         displayRotationHelper.updateSessionIfNeeded(session!!)
 
@@ -208,36 +259,37 @@ class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.R
             val viewmtx = FloatArray(16)
             camera.getViewMatrix(viewmtx, 0)
 
-            val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
+            val allAugmentedImages = session!!.getAllTrackables(AugmentedImage::class.java)
+            var hasActiveTrackingImage = false
 
-            for (augmentedImage in updatedAugmentedImages) {
-                when (augmentedImage.trackingState) {
-                    TrackingState.TRACKING -> {
-                        if (augmentedImage.trackingMethod == AugmentedImage.TrackingMethod.FULL_TRACKING) {
-                            val event = Arguments.createMap()
-                            event.putString("id", augmentedImage.name)
-                            (context as ReactContext)
-                                .getJSModule(RCTEventEmitter::class.java)
-                                .receiveEvent(id, "onImageDetected", event)
+            for (augmentedImage in allAugmentedImages) {
+                if (augmentedImage.trackingState == TrackingState.TRACKING &&
+                    augmentedImage.trackingMethod == AugmentedImage.TrackingMethod.FULL_TRACKING) {
+                    
+                    hasActiveTrackingImage = true
+                    val event = Arguments.createMap()
+                    event.putString("id", augmentedImage.name)
+                    (context as ReactContext)
+                        .getJSModule(RCTEventEmitter::class.java)
+                        .receiveEvent(id, "onImageDetected", event)
 
-                            val videoUrl = videoUrlMap[augmentedImage.name]
-                            if (videoUrl != null) {
-                                videoPlaneRenderer.playVideo(videoUrl)
-                                videoPlaneRenderer.draw(
-                                    viewmtx,
-                                    projmtx,
-                                    augmentedImage.centerPose,
-                                    augmentedImage.extentX,
-                                    augmentedImage.extentZ
-                                )
-                            }
-                        }
+                    val videoUrl = videoUrlMap[augmentedImage.name]
+                    if (videoUrl != null) {
+                        videoPlaneRenderer.playVideo(videoUrl)
+                        videoPlaneRenderer.draw(
+                            viewmtx,
+                            projmtx,
+                            augmentedImage.centerPose,
+                            augmentedImage.extentX,
+                            augmentedImage.extentZ
+                        )
                     }
-                    TrackingState.STOPPED -> {
-                        videoPlaneRenderer.stopVideo()
-                    }
-                    else -> {}
+                    break
                 }
+            }
+
+            if (!hasActiveTrackingImage) {
+                videoPlaneRenderer.stopVideo()
             }
 
         } catch (e: Exception) {

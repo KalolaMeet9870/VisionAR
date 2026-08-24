@@ -89,11 +89,21 @@ class VideoPlaneRenderer {
             mediaPlayer?.reset()
             mediaPlayer?.setDataSource(url)
             mediaPlayer?.setOnPreparedListener { mp ->
-                mp.isLooping = true
-                mp.start()
-                isVideoPlaying = true
-                isVideoPreparing = false
-                Log.d(TAG, "Video playback started for $url")
+                if (isVideoPreparing && currentVideoUrl == url) {
+                    mp.isLooping = true
+                    mp.start()
+                    isVideoPlaying = true
+                    isVideoPreparing = false
+                    Log.d(TAG, "Video playback started for $url")
+                } else {
+                    try {
+                        mp.pause()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error pausing cancelled video player", e)
+                    }
+                    isVideoPlaying = false
+                    isVideoPreparing = false
+                }
             }
             mediaPlayer?.setOnErrorListener { _, what, extra ->
                 Log.e(TAG, "MediaPlayer error for $url: what=$what, extra=$extra")
@@ -112,17 +122,33 @@ class VideoPlaneRenderer {
     }
 
     fun stopVideo() {
-        if (isVideoPlaying || isVideoPreparing) {
-            try {
-                if (mediaPlayer?.isPlaying == true) {
-                    mediaPlayer?.pause()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error pausing mediaPlayer", e)
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+                mediaPlayer?.seekTo(0)
+            } else {
+                mediaPlayer?.pause()
             }
-            isVideoPlaying = false
-            isVideoPreparing = false
-            currentVideoUrl = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error pausing mediaPlayer", e)
+        }
+        isVideoPlaying = false
+        isVideoPreparing = false
+        currentVideoUrl = null
+    }
+
+    fun release() {
+        stopVideo()
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            surface?.release()
+            surface = null
+            surfaceTexture?.release()
+            surfaceTexture = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error releasing VideoPlaneRenderer resources", e)
         }
     }
 
