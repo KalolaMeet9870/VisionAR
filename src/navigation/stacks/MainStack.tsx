@@ -5,13 +5,14 @@ import { RootStackParamList } from './types';
 import DrawerNavigator from '../DrawerNavigator';
 import ScanScreen from '../../screens/Scan/ScanScreen';
 import { colors } from '../../theme/colors';
+import { strings } from '../../constants/strings';
 import { moderateScale } from '../../theme/Metrics';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const DetailsScreen = () => (
   <View style={styles.centerContainer}>
-    <Text style={styles.text}>Details Screen</Text>
+    <Text style={styles.text}>{strings.screens.detailsTitle}</Text>
   </View>
 );
 
@@ -45,3 +46,4 @@ const styles = StyleSheet.create({
 });
 
 export default MainStack;
+

@@ -45,7 +45,7 @@ export const colors = {
   textPrimary: '#000000',
   textSecondary: '#717171', // maps to gray.two
   overlayDark: 'rgba(0, 0, 0, 0.35)',
-  bottomBarBg: '#090A0F',
+  bottomBarBg: '#1E1F24',
   whiteTranslucent: 'rgba(255, 255, 255, 0.75)',
   whiteBorder: 'rgba(255, 255, 255, 0.85)',
   iconActive: '#ffffff',
@@ -53,6 +53,19 @@ export const colors = {
   badgeRed: '#E90000',
   followButtonBg: 'rgba(255, 255, 255, 0.12)',
   overlayShadow: 'rgba(0, 0, 0, 0.5)',
+
+  // Dynamic Center Button & Curved Tab Bar Theme Tokens
+  centerButtonBg: '#1E1F24',
+  centerButtonActiveBg: '#2C2D34',
+  centerButtonBorder: 'rgba(255, 255, 255, 0.2)',
+  centerButtonActiveBorder: '#FFFFFF',
+  centerButtonShadow: '#1E1F24',
+  tabBarBorder: 'rgba(255, 255, 255, 0.08)',
+  notchDomeBg: '#1E1F24',
 };
+
+export default colors;
+
+
 
 

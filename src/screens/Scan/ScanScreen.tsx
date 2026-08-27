@@ -5,6 +5,7 @@ import { useScanController } from './ScanController';
 import { ScanHeader } from './components/ScanHeader';
 import { ScanOverlay } from './components/ScanOverlay';
 import { ARImageVideoView } from '../../components/ARImageVideoView';
+import { strings } from '../../constants/strings';
 import { styles } from './ScanStyles';
 
 export const ScanScreen: React.FC = () => {
@@ -24,7 +25,7 @@ export const ScanScreen: React.FC = () => {
     return (
       <View style={styles.permissionContainer}>
         <Text style={styles.permissionText}>
-          Camera permission is required to view AR content.
+          {strings.scan.cameraPermissionRequired}
         </Text>
       </View>
     );

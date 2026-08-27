@@ -3,19 +3,20 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthStackParamList } from './types';
 import { colors } from '../../theme/colors';
+import { strings } from '../../constants/strings';
 import { moderateScale } from '../../theme/Metrics';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const PlaceholderLogin = () => (
   <View style={styles.centerContainer}>
-    <Text style={styles.text}>Login Screen</Text>
+    <Text style={styles.text}>{strings.screens.loginTitle}</Text>
   </View>
 );
 
 const PlaceholderForgotPassword = () => (
   <View style={styles.centerContainer}>
-    <Text style={styles.text}>Forgot Password Screen</Text>
+    <Text style={styles.text}>{strings.screens.forgotPasswordTitle}</Text>
   </View>
 );
 
@@ -47,3 +48,4 @@ const styles = StyleSheet.create({
 });
 
 export default AuthStack;
+

@@ -12,6 +12,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useFeedController, FeedPost } from './FeedController';
 import { styles } from './FeedStyles';
 import { colors } from '../../theme/colors';
+import { strings } from '../../constants/strings';
 import { moderateScale } from '../../theme/Metrics';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -75,7 +76,7 @@ export const FeedScreen: React.FC = () => {
                       item.isFollowing && styles.followButtonTextActive,
                     ]}
                   >
-                    {item.isFollowing ? 'Following' : 'Follow'}
+                    {item.isFollowing ? strings.feed.following : strings.feed.follow}
                   </Text>
                 </TouchableOpacity>
               </View>

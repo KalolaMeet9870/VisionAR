@@ -4,19 +4,20 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerParamList } from './stacks/types';
 import BottomTabNavigator from './BottomTabNavigator';
 import { colors } from '../theme/colors';
+import { strings } from '../constants/strings';
 import { moderateScale } from '../theme/Metrics';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
 const SettingsScreen = () => (
   <View style={styles.centerContainer}>
-    <Text style={styles.text}>Settings Screen</Text>
+    <Text style={styles.text}>{strings.screens.settingsTitle}</Text>
   </View>
 );
 
 const AccountScreen = () => (
   <View style={styles.centerContainer}>
-    <Text style={styles.text}>Account Screen</Text>
+    <Text style={styles.text}>{strings.screens.accountTitle}</Text>
   </View>
 );
 
@@ -35,17 +36,17 @@ export const DrawerNavigator: React.FC = () => {
       <Drawer.Screen
         name="MainTabs"
         component={BottomTabNavigator}
-        options={{ drawerLabel: 'Home' }}
+        options={{ drawerLabel: strings.drawer.home }}
       />
       <Drawer.Screen
         name="Account"
         component={AccountScreen}
-        options={{ drawerLabel: 'Account' }}
+        options={{ drawerLabel: strings.drawer.account }}
       />
       <Drawer.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ drawerLabel: 'Settings' }}
+        options={{ drawerLabel: strings.drawer.settings }}
       />
     </Drawer.Navigator>
   );
@@ -65,3 +66,4 @@ const styles = StyleSheet.create({
 });
 
 export default DrawerNavigator;
+
