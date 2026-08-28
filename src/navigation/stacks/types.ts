@@ -23,5 +23,26 @@ export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<DrawerParamList>;
   ScanScreen: undefined;
-  Details: { id: string };
+  Details: {
+    id: string;
+    title?: string;
+    imageUrl?: string;
+    creatorName?: string;
+    avatarUrl?: string;
+    isFollowing?: boolean;
+    isLiked?: boolean;
+  };
+  ArtistProfile: {
+    id: string;
+    name?: string;
+    avatarUrl?: string;
+    bio?: string;
+    followersCount?: number;
+    collectedCount?: number;
+    websiteUrl?: string;
+  };
 };
+
+
+
+

@@ -6,6 +6,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Octicons from 'react-native-vector-icons/Octicons';
 import { BottomTabParamList } from './stacks/types';
 import ScanScreen from '../screens/Scan/ScanScreen';
+import SearchScreen from '../screens/Search/SearchScreen';
 import FeedScreen from '../screens/Feed/FeedScreen';
 import { colors } from '../theme/colors';
 import { strings } from '../constants/strings';
@@ -13,11 +14,6 @@ import { moderateScale, verticalScale } from '../theme/Metrics';
 
 const Tab = createBottomTabNavigator<BottomTabParamList>();
 
-const SearchScreen = () => (
-  <View style={styles.screenContainer}>
-    <Text style={styles.screenText}>{strings.screens.searchTitle}</Text>
-  </View>
-);
 
 const AddScreen = () => (
   <View style={styles.screenContainer}>

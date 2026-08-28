@@ -62,9 +62,32 @@ export const colors = {
   centerButtonShadow: '#1E1F24',
   tabBarBorder: 'rgba(255, 255, 255, 0.08)',
   notchDomeBg: '#1E1F24',
+
+  // Search Screen Color Tokens
+  searchBarBg: '#F2F3F5',
+  searchPlaceholder: '#8E8F94',
+  searchIcon: '#717171',
+
+  // Artist Profile Theme Tokens
+  iconBoxBg: '#FAFAFA',
+  iconBoxBorder: '#EAEAEA',
+  statDivider: '#E0E0E0',
+  bioText: '#555555',
+  activeIndicator: '#000000',
+  flagBg: '#FDEBEB',
+  flagIcon: '#E90000',
+
+  // Reels Theme Tokens
+  reelsCtaBg: 'rgba(255, 255, 255, 0.2)',
+  reelsCtaBorder: 'rgba(255, 255, 255, 0.3)',
+  reelsVerifiedBadge: '#3897F0',
+  reelsOverlayGradient: 'rgba(0, 0, 0, 0.45)',
 };
 
 export default colors;
+
+
+
 
 
 

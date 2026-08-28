@@ -28,6 +28,34 @@ export const strings = {
     following: 'Following',
     follow: 'Follow',
   },
+  search: {
+    placeholder: 'Search',
+    featuredArtists: 'Featured artists',
+    popular: 'Popular',
+    noResults: 'No results found',
+  },
+  artistProfile: {
+    followers: 'Followers',
+    collected: 'Collected',
+    follow: 'Follow',
+    following: 'Following',
+    showMore: 'Show More',
+    showLess: 'Show Less',
+    fanRecordings: 'Fan Recordings',
+    uploads: 'Uploads',
+    noRecordings: 'No fan recordings yet',
+    noUploads: 'No uploads yet',
+  },
+  reels: {
+    title: 'Reels',
+    learnMore: 'Learn more',
+    sponsored: 'Sponsored',
+    likes: '823k',
+    comments: '51',
+  },
 };
 
 export default strings;
+
+
+
