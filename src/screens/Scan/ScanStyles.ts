@@ -22,6 +22,22 @@ export const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  cameraOffBackground: {
+    backgroundColor: '#0D0D12',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraOffText: {
+    color: colors.iconInactive,
+    fontSize: moderateScale(14),
+    fontWeight: '500',
+  },
+  frozenPreviewImage: {
+    ...StyleSheet.absoluteFill,
+    width: width,
+    height: height,
+    zIndex: 1,
+  },
   permissionContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -51,6 +67,13 @@ export const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     justifyContent: 'space-between',
     paddingBottom: verticalScale(80),
+    zIndex: 10,
+  },
+  fullOverlay: {
+    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: verticalScale(16),
   },
   headerContainer: {
     paddingTop: verticalScale(44),
@@ -67,6 +90,287 @@ export const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: moderateScale(3),
   },
+
+  // Viewfinder Reticle Frame
+  reticleContainer: {
+    alignItems: 'center',
+    marginTop: verticalScale(60),
+  },
+  reticleFrame: {
+    width: width * 0.76,
+    height: width * 0.76,
+    borderRadius: moderateScale(20),
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  corner: {
+    position: 'absolute',
+    width: moderateScale(28),
+    height: moderateScale(28),
+    borderColor: '#00E5FF',
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 3.5,
+    borderLeftWidth: 3.5,
+    borderTopLeftRadius: moderateScale(14),
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 3.5,
+    borderRightWidth: 3.5,
+    borderTopRightRadius: moderateScale(14),
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 3.5,
+    borderLeftWidth: 3.5,
+    borderBottomLeftRadius: moderateScale(14),
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 3.5,
+    borderRightWidth: 3.5,
+    borderBottomRightRadius: moderateScale(14),
+  },
+  scannerBeamLine: {
+    width: '90%',
+    height: 2,
+    backgroundColor: 'rgba(0, 229, 255, 0.8)',
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+  },
+  reticleGuideText: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: moderateScale(13),
+    fontWeight: '500',
+    marginTop: verticalScale(14),
+    textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: moderateScale(4),
+  },
+
+  // Shutter Capture Button
+  shutterContainer: {
+    alignItems: 'center',
+    marginBottom: verticalScale(20),
+  },
+  shutterOuterRing: {
+    width: moderateScale(72),
+    height: moderateScale(72),
+    borderRadius: moderateScale(36),
+    borderWidth: 4,
+    borderColor: colors.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  shutterInnerCircle: {
+    width: moderateScale(56),
+    height: moderateScale(56),
+    borderRadius: moderateScale(28),
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shutterHintText: {
+    color: colors.white,
+    fontSize: moderateScale(11),
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginTop: verticalScale(8),
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: moderateScale(4),
+  },
+
+  // Uploading / Capturing State Card
+  uploadingCard: {
+    backgroundColor: 'rgba(15, 15, 25, 0.92)',
+    borderRadius: moderateScale(20),
+    padding: moderateScale(24),
+    alignItems: 'center',
+    marginTop: verticalScale(120),
+    borderWidth: 1,
+    borderColor: 'rgba(0, 229, 255, 0.3)',
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    width: width - horizontalScale(48),
+  },
+  uploadingTitle: {
+    color: colors.white,
+    fontSize: moderateScale(17),
+    fontWeight: '700',
+    marginTop: verticalScale(14),
+  },
+  uploadingSubtext: {
+    color: colors.iconInactive,
+    fontSize: moderateScale(13),
+    marginTop: verticalScale(4),
+  },
+  processingBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: horizontalScale(10),
+    paddingVertical: verticalScale(4),
+    borderRadius: moderateScale(10),
+    marginTop: verticalScale(14),
+  },
+  processingBadgeText: {
+    color: '#00E5FF',
+    fontSize: moderateScale(10),
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+
+  // Results Section (Image & Video)
+  resultContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: horizontalScale(16),
+  },
+  imageResultCard: {
+    width: width - horizontalScale(32),
+    backgroundColor: 'rgba(20, 20, 30, 0.95)',
+    borderRadius: moderateScale(20),
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+  resultBadgeContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#00C853',
+    paddingHorizontal: horizontalScale(12),
+    paddingVertical: verticalScale(4),
+    borderRadius: moderateScale(12),
+    margin: moderateScale(12),
+  },
+  resultBadgeText: {
+    color: colors.white,
+    fontSize: moderateScale(10),
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  matchedImagePreview: {
+    width: '100%',
+    height: verticalScale(200),
+  },
+  resultDetails: {
+    padding: moderateScale(16),
+  },
+  resultTitle: {
+    color: colors.white,
+    fontSize: moderateScale(18),
+    fontWeight: '700',
+  },
+  resultCreator: {
+    color: colors.iconInactive,
+    fontSize: moderateScale(13),
+    fontWeight: '500',
+    marginTop: verticalScale(2),
+  },
+  resultDescription: {
+    color: colors.white,
+    fontSize: moderateScale(13),
+    marginTop: verticalScale(8),
+    lineHeight: moderateScale(18),
+  },
+  resultActionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: horizontalScale(16),
+    marginTop: verticalScale(14),
+    paddingTop: verticalScale(12),
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  actionIconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: horizontalScale(6),
+  },
+  actionIconCount: {
+    color: colors.white,
+    fontSize: moderateScale(13),
+    fontWeight: '600',
+  },
+  actionIconLabel: {
+    color: colors.white,
+    fontSize: moderateScale(13),
+    fontWeight: '600',
+  },
+
+  // Scan Again Button
+  scanAgainButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+    borderRadius: moderateScale(24),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: horizontalScale(20),
+    marginTop: verticalScale(16),
+    gap: horizontalScale(8),
+  },
+  scanAgainText: {
+    color: colors.black,
+    fontSize: moderateScale(14),
+    fontWeight: '700',
+  },
+
+  // Status Cards (No Match / Error)
+  statusCard: {
+    width: width - horizontalScale(40),
+    backgroundColor: 'rgba(24, 24, 34, 0.95)',
+    borderRadius: moderateScale(20),
+    padding: moderateScale(24),
+    alignItems: 'center',
+    marginTop: verticalScale(120),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  statusTitle: {
+    color: colors.white,
+    fontSize: moderateScale(18),
+    fontWeight: '700',
+    marginTop: verticalScale(12),
+    textAlign: 'center',
+  },
+  statusDescription: {
+    color: colors.iconInactive,
+    fontSize: moderateScale(13),
+    textAlign: 'center',
+    marginTop: verticalScale(8),
+    lineHeight: moderateScale(18),
+  },
+
+  // Original overlay components
   mainOverlayContent: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -74,7 +378,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: horizontalScale(16),
     paddingBottom: verticalScale(16),
   },
-  // Profile Section (Bottom Left)
   profileSection: {
     flex: 1,
     marginRight: horizontalScale(16),
@@ -134,7 +437,6 @@ export const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: moderateScale(3),
   },
-  // Right Action Bar
   actionColumn: {
     alignItems: 'center',
     gap: verticalScale(22),
@@ -156,7 +458,6 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: verticalScale(4),
   },
-  // Bottom Dock Navigation Bar
   bottomBarContainer: {
     position: 'absolute',
     bottom: 0,

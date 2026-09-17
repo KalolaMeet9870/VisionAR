@@ -267,11 +267,15 @@ class ARImageVideoView(context: Context) : FrameLayout(context), GLSurfaceView.R
                     augmentedImage.trackingMethod == AugmentedImage.TrackingMethod.FULL_TRACKING) {
                     
                     hasActiveTrackingImage = true
-                    val event = Arguments.createMap()
-                    event.putString("id", augmentedImage.name)
-                    (context as ReactContext)
-                        .getJSModule(RCTEventEmitter::class.java)
-                        .receiveEvent(id, "onImageDetected", event)
+                    try {
+                        val event = Arguments.createMap()
+                        event.putString("id", augmentedImage.name)
+                        (context as? ReactContext)
+                            ?.getJSModule(RCTEventEmitter::class.java)
+                            ?.receiveEvent(id, "onImageDetected", event)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Could not send onImageDetected event to JS: ${e.message}")
+                    }
 
                     val videoUrl = videoUrlMap[augmentedImage.name]
                     if (videoUrl != null) {

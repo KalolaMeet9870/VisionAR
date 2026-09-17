@@ -26,7 +26,9 @@ class VideoPlaneRenderer {
     private var surfaceTexture: SurfaceTexture? = null
     private var mediaPlayer: MediaPlayer? = null
     private var surface: Surface? = null
-    private var isVideoPlaying = false
+    @Volatile private var isVideoPlaying = false
+    @Volatile private var isVideoPreparing = false
+    @Volatile private var currentVideoUrl: String? = null
 
     private val modelMatrix = FloatArray(16)
     private val modelViewMatrix = FloatArray(16)
@@ -45,10 +47,12 @@ class VideoPlaneRenderer {
 
         surfaceTexture = SurfaceTexture(textureId)
         surface = Surface(surfaceTexture)
-        mediaPlayer = MediaPlayer()
-        mediaPlayer?.setSurface(surface)
+        
+        synchronized(this) {
+            mediaPlayer = MediaPlayer()
+            mediaPlayer?.setSurface(surface)
+        }
 
-        val numVertices = 4
         val bbVertices = ByteBuffer.allocateDirect(QUAD_COORDS.size * 4)
         bbVertices.order(ByteOrder.nativeOrder())
         quadVertices = bbVertices.asFloatBuffer()
@@ -75,9 +79,7 @@ class VideoPlaneRenderer {
         modelViewProjectionParam = GLES20.glGetUniformLocation(quadProgram, "u_ModelViewProjection")
     }
 
-    private var currentVideoUrl: String? = null
-    private var isVideoPreparing = false
-
+    @Synchronized
     fun playVideo(url: String) {
         if ((isVideoPlaying || isVideoPreparing) && currentVideoUrl == url) return
         
@@ -86,41 +88,61 @@ class VideoPlaneRenderer {
             isVideoPreparing = true
             currentVideoUrl = url
 
-            mediaPlayer?.reset()
+            if (mediaPlayer == null) {
+                mediaPlayer = MediaPlayer()
+            } else {
+                mediaPlayer?.reset()
+            }
+
+            if (surface != null && surface!!.isValid) {
+                mediaPlayer?.setSurface(surface)
+            }
+
             mediaPlayer?.setDataSource(url)
             mediaPlayer?.setOnPreparedListener { mp ->
-                if (isVideoPreparing && currentVideoUrl == url) {
-                    mp.isLooping = true
-                    mp.start()
-                    isVideoPlaying = true
-                    isVideoPreparing = false
-                    Log.d(TAG, "Video playback started for $url")
-                } else {
-                    try {
-                        mp.pause()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error pausing cancelled video player", e)
+                synchronized(this@VideoPlaneRenderer) {
+                    if (isVideoPreparing && currentVideoUrl == url) {
+                        try {
+                            mp.isLooping = true
+                            mp.start()
+                            isVideoPlaying = true
+                            isVideoPreparing = false
+                            Log.d(TAG, "Video playback started for $url")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error starting mediaPlayer playback", e)
+                            isVideoPlaying = false
+                            isVideoPreparing = false
+                        }
+                    } else {
+                        try {
+                            mp.pause()
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error pausing cancelled video player", e)
+                        }
+                        isVideoPlaying = false
+                        isVideoPreparing = false
                     }
-                    isVideoPlaying = false
-                    isVideoPreparing = false
                 }
             }
             mediaPlayer?.setOnErrorListener { _, what, extra ->
                 Log.e(TAG, "MediaPlayer error for $url: what=$what, extra=$extra")
-                isVideoPlaying = false
-                isVideoPreparing = false
-                currentVideoUrl = null
+                synchronized(this@VideoPlaneRenderer) {
+                    isVideoPlaying = false
+                    isVideoPreparing = false
+                    currentVideoUrl = null
+                }
                 true
             }
             mediaPlayer?.prepareAsync()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to play video", e)
+            Log.e(TAG, "Failed to play video: ${e.message}", e)
             isVideoPlaying = false
             isVideoPreparing = false
             currentVideoUrl = null
         }
     }
 
+    @Synchronized
     fun stopVideo() {
         try {
             if (mediaPlayer?.isPlaying == true) {
@@ -137,6 +159,7 @@ class VideoPlaneRenderer {
         currentVideoUrl = null
     }
 
+    @Synchronized
     fun release() {
         stopVideo()
         try {
@@ -153,7 +176,7 @@ class VideoPlaneRenderer {
     }
 
     fun updateVideoSurface() {
-        if (isVideoPlaying) {
+        if (isVideoPlaying && surfaceTexture != null) {
             try {
                 surfaceTexture?.updateTexImage()
             } catch (e: Exception) {
@@ -165,35 +188,38 @@ class VideoPlaneRenderer {
     fun draw(viewMatrix: FloatArray, projectionMatrix: FloatArray, pose: Pose, extentX: Float, extentZ: Float) {
         if (!isVideoPlaying) return
 
-        GLES20.glUseProgram(quadProgram)
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
+        try {
+            GLES20.glUseProgram(quadProgram)
+            GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
 
-        // Create model matrix from pose
-        pose.toMatrix(modelMatrix, 0)
-        
-        // Scale to match the exact physical size of the detected image
-        // extentX and extentZ already represent the full width and height of the image
-        Matrix.scaleM(modelMatrix, 0, extentX, 1f, extentZ)
+            // Create model matrix from pose
+            pose.toMatrix(modelMatrix, 0)
+            
+            // Scale to match physical size of detected image target
+            Matrix.scaleM(modelMatrix, 0, extentX, 1f, extentZ)
 
-        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
+            Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
+            Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
 
-        GLES20.glUniformMatrix4fv(modelViewProjectionParam, 1, false, modelViewProjectionMatrix, 0)
+            GLES20.glUniformMatrix4fv(modelViewProjectionParam, 1, false, modelViewProjectionMatrix, 0)
 
-        GLES20.glVertexAttribPointer(quadPositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, quadVertices)
-        GLES20.glVertexAttribPointer(quadTexCoordParam, TEXCOORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, quadTexCoord)
+            GLES20.glVertexAttribPointer(quadPositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, quadVertices)
+            GLES20.glVertexAttribPointer(quadTexCoordParam, TEXCOORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, quadTexCoord)
 
-        GLES20.glEnableVertexAttribArray(quadPositionParam)
-        GLES20.glEnableVertexAttribArray(quadTexCoordParam)
+            GLES20.glEnableVertexAttribArray(quadPositionParam)
+            GLES20.glEnableVertexAttribArray(quadTexCoordParam)
 
-        GLES20.glEnable(GLES20.GL_BLEND)
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+            GLES20.glEnable(GLES20.GL_BLEND)
+            GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+            GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
 
-        GLES20.glDisableVertexAttribArray(quadPositionParam)
-        GLES20.glDisableVertexAttribArray(quadTexCoordParam)
-        GLES20.glDisable(GLES20.GL_BLEND)
+            GLES20.glDisableVertexAttribArray(quadPositionParam)
+            GLES20.glDisableVertexAttribArray(quadTexCoordParam)
+            GLES20.glDisable(GLES20.GL_BLEND)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in VideoPlaneRenderer draw", e)
+        }
     }
 
     companion object {

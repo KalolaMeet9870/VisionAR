@@ -1,13 +1,21 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styles } from '../ScanStyles';
-import { CreatorTarget } from '../ScanController';
+import { CreatorTarget, ScanState } from '../ScanController';
+import { MatchTargetResult } from '../../../services/api';
+import { VideoResultView } from './VideoResultView';
 import { colors } from '../../../theme/colors';
 import { moderateScale } from '../../../theme/Metrics';
 
 interface ScanOverlayProps {
+  scanState: ScanState;
+  resultMediaType: 'image' | 'video' | null;
+  matchResult: MatchTargetResult | null;
+  errorMessage: string | null;
+  onCapturePress: () => void;
+  onResetScan: () => void;
   creatorInfo: CreatorTarget;
   onToggleFollow: () => void;
   onToggleLike: () => void;
@@ -16,98 +24,123 @@ interface ScanOverlayProps {
 }
 
 export const ScanOverlay: React.FC<ScanOverlayProps> = ({
+  scanState,
+  resultMediaType,
+  matchResult,
+  errorMessage,
+  onCapturePress,
+  onResetScan,
   creatorInfo,
   onToggleFollow,
   onToggleLike,
   onShare,
   onReport,
 }) => {
-  return (
-    <View style={styles.mainOverlayContent}>
-      {/* Profile & Info Section (Bottom Left) */}
-      <View style={styles.profileSection}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <MaterialCommunityIcons
-              name="eye-circle-outline"
-              size={moderateScale(24)}
-              color={colors.white}
-            />
+  // 1. Idle Scanning Overlay (Viewfinder & Shutter Button)
+  if (scanState === 'idle') {
+    return (
+      <View style={styles.fullOverlay} pointerEvents="box-none">
+        {/* Reticle Viewfinder Frame */}
+        <View style={styles.reticleContainer} pointerEvents="none">
+          <View style={styles.reticleFrame}>
+            <View style={[styles.corner, styles.topLeft]} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
+            <View style={styles.scannerBeamLine} />
           </View>
+          <Text style={styles.reticleGuideText}>Point camera at AR target & capture</Text>
+        </View>
 
-          <Text style={styles.creatorName} numberOfLines={1}>
-            {creatorInfo.creatorName}
+        {/* Shutter Capture Button (Bottom Center) */}
+        <View style={styles.shutterContainer} pointerEvents="box-none">
+          <TouchableOpacity
+            style={styles.shutterOuterRing}
+            onPress={onCapturePress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.shutterInnerCircle}>
+              <MaterialCommunityIcons
+                name="camera"
+                size={moderateScale(28)}
+                color={colors.black}
+              />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.shutterHintText}>TAP TO CAPTURE</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // 2. Capturing & Uploading Overlay (Loading state over frozen preview)
+  if (scanState === 'capturing' || scanState === 'uploading') {
+    return (
+      <View style={styles.fullOverlay} pointerEvents="box-none">
+        <View style={styles.uploadingCard}>
+          <ActivityIndicator size="large" color={colors.primary || '#00E5FF'} />
+          <Text style={styles.uploadingTitle}>Matching Target Image...</Text>
+          <Text style={styles.uploadingSubtext}>Uploading snapshot to Match API</Text>
+          <View style={styles.processingBadge}>
+            <Text style={styles.processingBadgeText}>CAMERA FROZEN</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // 3. Success Result State: Hide overlay cards to present clean full-screen AR camera tracking view
+  if (scanState === 'success') {
+    return null;
+  }
+
+  // 4. No Match Found State
+  if (scanState === 'no_match') {
+    return (
+      <View style={styles.fullOverlay} pointerEvents="box-none">
+        <View style={styles.statusCard}>
+          <Ionicons name="help-circle-outline" size={moderateScale(56)} color="#FFB74D" />
+          <Text style={styles.statusTitle}>No Target Match Found</Text>
+          <Text style={styles.statusDescription}>
+            We couldn't match this image with any registered AR target. Make sure the target is clear, well-lit, and in focus.
           </Text>
 
           <TouchableOpacity
-            style={[
-              styles.followButton,
-              creatorInfo.isFollowing && styles.followButtonActive,
-            ]}
-            onPress={onToggleFollow}
+            style={styles.scanAgainButton}
+            onPress={onResetScan}
             activeOpacity={0.8}
           >
-            <Text
-              style={[
-                styles.followButtonText,
-                creatorInfo.isFollowing && styles.followButtonTextActive,
-              ]}
-            >
-              {creatorInfo.isFollowing ? 'Following' : 'Follow'}
-            </Text>
+            <Ionicons name="refresh-outline" size={moderateScale(20)} color={colors.black} />
+            <Text style={styles.scanAgainText}>Try Scanning Again</Text>
           </TouchableOpacity>
         </View>
-
-        <Text style={styles.captionText}>{creatorInfo.caption}</Text>
       </View>
+    );
+  }
 
-      {/* Action Icons Column (Bottom Right) */}
-      <View style={styles.actionColumn}>
-        {/* Heart / Like Icon */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onToggleLike}
-          activeOpacity={0.7}
-        >
-          <View style={styles.actionIconContainer}>
-            <Ionicons
-              name={creatorInfo.isLiked ? 'heart' : 'heart-outline'}
-              size={moderateScale(28)}
-              color={creatorInfo.isLiked ? colors.red : colors.white}
-            />
-          </View>
-        </TouchableOpacity>
+  // 5. API Error State
+  if (scanState === 'error') {
+    return (
+      <View style={styles.fullOverlay} pointerEvents="box-none">
+        <View style={styles.statusCard}>
+          <Ionicons name="alert-circle-outline" size={moderateScale(56)} color={colors.red} />
+          <Text style={styles.statusTitle}>Match Request Error</Text>
+          <Text style={styles.statusDescription}>
+            {errorMessage || 'Unable to connect to the Match API. Please verify your connection.'}
+          </Text>
 
-        {/* Share Icon */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onShare}
-          activeOpacity={0.7}
-        >
-          <View style={styles.actionIconContainer}>
-            <Ionicons
-              name="navigate-outline"
-              size={moderateScale(26)}
-              color={colors.white}
-            />
-          </View>
-        </TouchableOpacity>
-
-        {/* Flag / Report Icon */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={onReport}
-          activeOpacity={0.7}
-        >
-          <View style={styles.actionIconContainer}>
-            <Ionicons
-              name="flag-outline"
-              size={moderateScale(24)}
-              color={colors.white}
-            />
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.scanAgainButton}
+            onPress={onResetScan}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="refresh-outline" size={moderateScale(20)} color={colors.black} />
+            <Text style={styles.scanAgainText}>Try Scanning Again</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
+
+  return null;
 };
