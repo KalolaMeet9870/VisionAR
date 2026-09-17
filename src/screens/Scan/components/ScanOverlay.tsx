@@ -89,7 +89,7 @@ export const ScanOverlay: React.FC<ScanOverlayProps> = ({
     );
   }
 
-  // 3. Success Result State: Hide overlay cards to present clean full-screen AR camera tracking view
+  // 3. Success Result State: Hide overlay cards so AR video plays directly on the image target
   if (scanState === 'success') {
     return null;
   }

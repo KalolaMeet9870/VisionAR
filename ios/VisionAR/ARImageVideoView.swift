@@ -2,6 +2,7 @@ import Foundation
 import ARKit
 import SceneKit
 import React
+import AVFoundation
 
 @objc(ARImageVideoViewManager)
 class ARImageVideoViewManager: RCTViewManager {
@@ -47,7 +48,6 @@ class ARImageVideoView: UIView, ARSCNViewDelegate {
   
   @objc func setTargets(_ targets: [NSDictionary]) {
     self.targets = targets
-    // Restart session if needed when targets change
     startARSession()
   }
   
@@ -79,27 +79,44 @@ class ARImageVideoView: UIView, ARSCNViewDelegate {
     
     print("Detected image: \(imageName)")
     
-    // Notify JS
+    // Notify JS layer
     if let onImageDetected = onImageDetected {
       onImageDetected(["id": imageName])
     }
     
-    // Create Plane
-    let plane = SCNPlane(width: referenceImage.physicalSize.width,
-                         height: referenceImage.physicalSize.height)
+    // Look up specific videoUrl for the detected image target
+    var targetVideoUrl: String? = self.videoUrl.isEmpty ? nil : self.videoUrl
+    for targetDict in self.targets {
+      if let targetId = targetDict["id"] as? String, targetId == imageName {
+        if let vUrl = targetDict["videoUrl"] as? String, !vUrl.isEmpty {
+          targetVideoUrl = vUrl
+          break
+        }
+      }
+    }
     
-    // Create Video Node
-    if let url = URL(string: videoUrl) {
+    // Physical dimensions of detected target image
+    let physicalWidth = referenceImage.physicalSize.width
+    let physicalHeight = referenceImage.physicalSize.height
+    
+    let plane = SCNPlane(width: physicalWidth, height: physicalHeight)
+    
+    if let urlStr = targetVideoUrl, let url = URL(string: urlStr), !urlStr.isEmpty {
       let player = AVPlayer(url: url)
       let videoNode = SKVideoNode(avPlayer: player)
-      let videoScene = SKScene(size: CGSize(width: 1280, height: 720))
       
-      videoNode.position = CGPoint(x: videoScene.size.width / 2, y: videoScene.size.height / 2)
-      videoNode.yScale = -1.0 // Flip video
+      // Maintain exact physical aspect ratio to prevent video stretching/sketching
+      let baseWidth: CGFloat = 1280.0
+      let baseHeight: CGFloat = baseWidth * (physicalHeight / physicalWidth)
+      let videoScene = SKScene(size: CGSize(width: baseWidth, height: baseHeight))
+      
+      videoNode.position = CGPoint(x: videoScene.size.width / 2.0, y: videoScene.size.height / 2.0)
+      videoNode.yScale = -1.0 // Flip video vertically for SCNPlane mapping
       videoNode.size = videoScene.size
       videoScene.addChild(videoNode)
       
       plane.firstMaterial?.diffuse.contents = videoScene
+      plane.firstMaterial?.isDoubleSided = true
       player.play()
     }
     
@@ -108,4 +125,11 @@ class ARImageVideoView: UIView, ARSCNViewDelegate {
     
     node.addChildNode(planeNode)
   }
+  
+  func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+    guard let imageAnchor = anchor as? ARImageAnchor else { return }
+    // Hide node if tracking is lost during motion
+    node.isHidden = !imageAnchor.isTracked
+  }
 }
+

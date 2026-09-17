@@ -90,8 +90,8 @@ export const ScanScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* 1. Live Native ARCore View / Vision Camera Stream */}
-      {Platform.OS === 'android' && scanState === 'success' && matchResult?.videoUrl && isLiveArActive ? (
+      {/* 1. Live Native AR Core / ARKit View / Vision Camera Stream */}
+      {scanState === 'success' && matchResult?.videoUrl && isLiveArActive ? (
         <ARImageVideoView
           style={styles.cameraView}
           targets={arTargets}

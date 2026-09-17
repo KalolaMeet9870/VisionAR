@@ -81,8 +81,29 @@ class VideoPlaneRenderer {
 
     @Synchronized
     fun playVideo(url: String) {
-        if ((isVideoPlaying || isVideoPreparing) && currentVideoUrl == url) return
-        
+        // Case 1: Already actively playing this video
+        if (isVideoPlaying && currentVideoUrl == url) return
+
+        // Case 2: Resume playback if already prepared for this exact URL
+        if (currentVideoUrl == url && mediaPlayer != null && !isVideoPreparing) {
+            try {
+                if (surface != null && surface!!.isValid) {
+                    mediaPlayer?.setSurface(surface)
+                }
+                mediaPlayer?.isLooping = true
+                mediaPlayer?.start()
+                isVideoPlaying = true
+                Log.d(TAG, "Resumed video playback instantly for $url")
+                return
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not resume mediaPlayer, re-initializing: ${e.message}")
+            }
+        }
+
+        // Case 3: If currently preparing this exact URL, let prepareAsync complete
+        if (isVideoPreparing && currentVideoUrl == url) return
+
+        // Case 4: Load new video URL or re-initialize
         try {
             isVideoPlaying = false
             isVideoPreparing = true
@@ -147,16 +168,12 @@ class VideoPlaneRenderer {
         try {
             if (mediaPlayer?.isPlaying == true) {
                 mediaPlayer?.pause()
-                mediaPlayer?.seekTo(0)
-            } else {
-                mediaPlayer?.pause()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error pausing mediaPlayer", e)
         }
         isVideoPlaying = false
         isVideoPreparing = false
-        currentVideoUrl = null
     }
 
     @Synchronized
@@ -195,8 +212,27 @@ class VideoPlaneRenderer {
             // Create model matrix from pose
             pose.toMatrix(modelMatrix, 0)
             
-            // Scale to match physical size of detected image target
-            Matrix.scaleM(modelMatrix, 0, extentX, 1f, extentZ)
+            // Adjust scaling to match physical target size while preserving video aspect ratio
+            var drawExtentX = extentX
+            var drawExtentZ = extentZ
+
+            if (mediaPlayer != null && isVideoPlaying) {
+                val vWidth = mediaPlayer?.videoWidth ?: 0
+                val vHeight = mediaPlayer?.videoHeight ?: 0
+                if (vWidth > 0 && vHeight > 0 && extentX > 0f && extentZ > 0f) {
+                    val videoAspect = vWidth.toFloat() / vHeight.toFloat()
+                    val targetAspect = extentX / extentZ
+
+                    // Scale to fit inside target boundary while matching video aspect ratio
+                    if (videoAspect > targetAspect) {
+                        drawExtentZ = extentX / videoAspect
+                    } else {
+                        drawExtentX = extentZ * videoAspect
+                    }
+                }
+            }
+
+            Matrix.scaleM(modelMatrix, 0, drawExtentX, 1f, drawExtentZ)
 
             Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0)
             Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0)
